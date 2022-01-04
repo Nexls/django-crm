@@ -1,3 +1,6 @@
+import random
+
+from django.core.mail import send_mail
 from django.urls import reverse
 from django.views import generic
 
@@ -22,9 +25,21 @@ class AgentCreateView(OrganisorAndLoginRequiredMixin, generic.CreateView):
         return reverse('agents:agent-list')
 
     def form_valid(self, form):
-        agent = form.save(commit=False)
-        agent.organization = self.request.user.userprofile
-        agent.save()
+        user = form.save(commit=False)
+        user.is_agent = True
+        user.is_organisor = False
+        user.set_password(str(random.randint(0, 1_000_000)))
+        user.save()
+        Agent.objects.create(
+            user=user,
+            organization=self.request.user.userprofile
+        )
+        send_mail(
+            from_email="admin@test.com",
+            recipient_list=[user.email],
+            subject="You are invited to be an agent",
+            message="You were added as an agent on DJCRM. Please come login to start working"
+        )
         return super(AgentCreateView, self).form_valid(form)
 
 
