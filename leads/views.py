@@ -3,9 +3,9 @@ from django.core.mail import send_mail
 from django.shortcuts import reverse
 from django.views import generic
 
-from .form import AssignAgentForm, CustomUserCreationForm, LeadModelForm
-from .models import Category, Lead
 from agents.mixins import OrganisorAndLoginRequiredMixin
+from .forms import AssignAgentForm, CustomUserCreationForm, LeadCategoryUpdateForm, LeadModelForm
+from .models import Category, Lead
 
 
 class SignupView(generic.CreateView):
@@ -187,3 +187,22 @@ class CategoryDetailView(LoginRequiredMixin, generic.DetailView):
                 organization=user.agent.organization,
             )
         return queryset
+
+
+class LeadCategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
+    template_name = 'leads/lead_category_update.html'
+    form_class = LeadCategoryUpdateForm
+
+    def get_queryset(self):
+        user = self.request.user
+        # initial queryset of leads for the entire organisation
+        if user.is_organisor:
+            queryset = Lead.objects.filter(organization=user.userprofile)
+        else:
+            queryset = Lead.objects.filter(organization=user.agent.organization)
+            # filter for the current agent
+            queryset = queryset.filter(agent__user=user)
+        return queryset
+
+    def get_success_url(self):
+        return reverse('leads:lead-detail', kwargs={"pk": self.get_object().id})
