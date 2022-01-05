@@ -21,7 +21,7 @@ class Lead(models.Model):
     age = models.IntegerField(default=0)
     agent = models.ForeignKey("Agent", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    category = models.ForeignKey("Category", on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.ForeignKey("Category", related_name="leads", on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
