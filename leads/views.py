@@ -70,6 +70,8 @@ class LeadCreateView(OrganisorAndLoginRequiredMixin, generic.CreateView):
 
     def form_valid(self, form):
         # TODO send email
+        lead = form.save(commit=False)
+        lead.organization = self.request.user.userprofile
         send_mail(
             subject="A lead has been created",
             message="Go to the site to see the new lead",
@@ -173,7 +175,6 @@ class CategoryDetailView(LoginRequiredMixin, generic.DetailView):
     #         "leads": leads
     #     })
     #     return context
-
 
     def get_queryset(self):
         user = self.request.user

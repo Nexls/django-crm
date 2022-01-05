@@ -22,6 +22,10 @@ class Lead(models.Model):
     agent = models.ForeignKey("Agent", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     category = models.ForeignKey("Category", related_name="leads", on_delete=models.SET_NULL, null=True, blank=True)
+    description = models.TextField()
+    date_added = models.DateTimeField(auto_now_add=True)
+    phone_number = models.CharField(max_length=20)
+    email = models.EmailField()
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
