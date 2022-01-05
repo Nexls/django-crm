@@ -4,7 +4,7 @@ from django.shortcuts import reverse
 from django.views import generic
 
 from .form import AssignAgentForm, CustomUserCreationForm, LeadModelForm
-from .models import Lead
+from .models import Category, Lead
 from agents.mixins import OrganisorAndLoginRequiredMixin
 
 
@@ -124,3 +124,39 @@ class AssignAgentView(OrganisorAndLoginRequiredMixin, generic.FormView):
 
     def get_success_url(self):
         return reverse('leads:lead-list')
+
+
+class CategoryListView(LoginRequiredMixin, generic.ListView):
+    template_name = "leads/category_list.html"
+    context_object_name = "category_list"
+    
+    def get_context_data(self, **kwargs):
+        context = super(CategoryListView, self).get_context_data(**kwargs)
+        user = self.request.user
+
+        if user.is_organisor:
+            queryset = Lead.objects.filter(
+                organization=user.userprofile,
+            )
+        else:
+            queryset = Lead.objects.filter(
+                organization=user.agent.organization,
+            )
+
+        context.update({
+            "unassigned_lead_count": queryset.filter(category__isnull=True).count()
+        })
+        return context
+
+    def get_queryset(self):
+        user = self.request.user
+        # initial queryset of leads for the entire organisation
+        if user.is_organisor:
+            queryset = Category.objects.filter(
+                organization=user.userprofile,
+            )
+        else:
+            queryset = Category.objects.filter(
+                organization=user.agent.organization,
+            )
+        return queryset
